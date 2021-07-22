@@ -1,0 +1,286 @@
+## Prefácio
+
+Num blog de um entusiasta de testes eu li, "Better world by better software" 🤔<b>
+Essa frase ficou na minha cabeça.
+
+O mundo que vivemos pede cada vez mais agilidade, muitas empresas - na maior parte startups - tem a acelaração da informação como modelo de negócio. Seja com de processos bancários nas fintechs, centralização e extração de dados nas grandes plataformas ou análises de dados nos mais diversos segmentos.
+
+Garantia de qualidade é uma das partes mais importantes na vida de um software, e hoje com com os processos agéis de desenvolvimento testes manuais são muito custosos e nem sempre assertivos.
+
+ Desenvolver testes automatizados é hoje quesito de sobrevivencia num mercado cada vez mais complexo e exigente, além de serem um diferencial para profissionais na área.
+
+Nos ultimos 5 meses, eu desenvolvi testes para 35% das features da plataforma digital do Cubo, onde trabalho como fullstack, esse post tem como base minhas experiencias e problemas nessas implementações.
+
+## Introdução
+
+Testes end-to-end (e2e) são testes nos quais nos realizamos fluxos completos na visão do usuário final do produto.
+
+Através de código, botōes serão clicados, formulários preenchidos e demais interaçōes com sua plataforma, validando se cada passo de um fluxo está devidamente funcionando. Se você nunca escreveu testes, um passo importante é pensar como o usuário.
+
+Ao se colocar como usuário final, definindo as ações que o mesmo vai exercer naquela tela ou fluxo, você ganha até mais visibilidade sobre o que o seu produto realmente é. Sua finalidade.
+
+## O que é o Cypress
+
+O Cypress é uma ferramenta incrivel, um framework inteiro escrito Javascript que roda testes dentro do navegador. Não necessitando da instalação de drivers como o do Selenium. Trás libs como o JQuery e Moment para dentro da suite de testes caso queira utilizar.
+
+Fornece uma série de ferramentas bem eficientes para a elaboração e debug dos testes. 
+Manipulação facilitada do DOM, permitir salvar videos dos testes realizados, suporte a Typescript e algumas outras coisas fazem dele um framework com baixa curva de aprendizado.
+
+## Pensando como um teste 🧠
+
+Digamos que você tenha uma plataforma de vagas, onde candidatos se apliquem em oportunidades já pré cadastradas, o fluxo para um candidato seria
+
+1. Cadastrar candidato
+2. Pesquisar vagas
+3. Se candidatar em uma vaga
+
+O usuário precisa se cadastrar, pesquisar por vagas e se candidatar a uma delas. Essas são as ações necessárias para efetuar o fluxo de candidatura.
+
+## Manipulando elementos do DOM
+
+O JS roda dentro do navegador, é a linguagem da web, podendo estar no core da aplicação como Angular e React ou em interações menores numa plataforma PHP.
+
+Para escrevermos um teste simples é imprescindível termos a noção básica de **seletores, ações e valores**.
+
+As ações do javascript sobre os elementos na tela é um tema longo. de maneira simplista passarei o básico necessário para preenchermos alguns campos e clicar em botões.
+
+Então blz. Como o javascript seleciona, muda e verifica valores de elementos HTML ? 🤔
+
+### Seletores
+
+Entre outras paradas, elementos HTML possuem nomes e atributos. Através dessa identificação, conseguimos capturar e manipular elementos com javascript.
+
+Temos o elemento h3
+
+```html
+<h3 class="title" id="title__koe" >Koé</h3>
+```
+
+Que pode ser selecionado de diversas formas, pelo nome, pela classe, ou por qualquer outro atributo.
+
+```javascript
+document.getElementByClassName('title')
+// Ou
+document.getElementById('title')
+// E muitas outras formas
+
+/* Uma vez tendo o elemento,
+   podemos manipula-lo de diversas formas
+   São varios os metodos disponiveis
+   nesse objeto javascript */
+const domElement = document.getElementById('title');
+```
+
+<small>[Para aprender mais sobre seletores](https://www.w3schools.com/w3js/w3js_selectors.asp) 📚</small>
+
+### Ações e valores
+
+Podemos fazer diversas coisas após ter o elemento em uma variável, como colocar ou remover atributos, para incluir uma classe nova e formando uma animação por exemplo. Ou verificar o valor daquele campo, para pegar o nome do usuário caso seja um campo de texto e o mesmo tenha preenchido.
+
+São inumeras as possibilidades, para testes, o que mais fazemos é ler valores de campos e escrever valores em campos.
+
+Num site de vagas, como exemplifiquei anterioremente, para cadastrar um candidato devemos preencher um formulário com inputs variados, select boxes e etc. Coisas que apenas com javascript seria doloroso, mas o Cypress ajuda.
+
+```javascript
+// Pegando texto de um elemento com javascript puro
+document.getElementById('name').innerHTML;
+
+// Pegando texto de um elemento com com Cypress
+cy.get('#name').value()
+```
+
+<p align="middle" style="padding: 20px 0">
+<img width="40%" src="https://ih1.redbubble.net/image.666211991.1707/flat,550x550,075,f.u2.jpg"></img><br>
+<small>Partiu codar um teste então 💻</small>
+</p>
+
+## Testando com Cypress
+
+No exemplo prático que faremos, é o teste de cadastro e login, com preenchimento de dois campos em cada tela.
+
+Para o exemplo, vamos utilizar um site feito para praticar testes de cadastro e login simples.
+O nosso roteiro de teste é:
+
+1. Se cadastrar
+2. Realizar login
+
+### Criando um projeto Node
+
+De qualquer plataforma, tendo o [Node](https://nodejs.org/) e o [NPM](https://www.npmjs.com/) devidamente instalados, basta usarmos o gerenciador de pacotes para iniciar um projeto e Instalar o Cypress. Rodando o comando de instalação tranquilão do seu bash 🤙.
+
+Primeiro precisamos criar um projeto Node, para então instalar o Cypress e adicionar um npm script no package.json, para o Cypress rodar dentro do projeto.
+
+<small>👨‍💻Para rodar no seu bash</small>
+
+```shell
+mkdir testing-cypress
+cd testing-cypress
+npm init
+```
+
+Conclua a wizard do NPM e teremos uma nova pasta, com um projeto pronto para ser iniciado.
+
+### Instalando o Cypress
+
+Na pasta raiz do seu projeto instale o Cypress com o NPM
+
+``` shell 
+npm install cypress@3.8.2 --save-dev
+```
+
+Após o NPM concluir a instalação, teremos uma nova pasta, com um projeto pronto para ser iniciado.
+
+Vá no arquivo *package.json* que foi gerado pelo ```npm init``` e insira um novo registro em "scripts", deixando como no json abaixo.
+
+```JSON
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test:e2e": "cypress open", // essa linha o/
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cypress": "^3.8.2"
+  }
+}
+```
+
+Feito isso, nosso NPM script está criado e ja podemos abrir o Cypress com sua interface grafica. Abrindo pela primeira vez, ele criará uma estrutura de pastas padrão. Sinta-se livre para dar uma explorada.
+
+Abra o Cypress e gere as pastas rodando o comando na pasta raíz do projeto.
+
+<small>👨‍💻Para rodar no seu bash</small>
+```shell
+npm run test:e2e
+```
+
+Dessa forma o Cypress vai se configurar automaticamente e irá gerar a seguinte estrutura de pastas
+
+```shell
+cypress
+├── fixtures # 👈Nessa pasta ficam arquivos, como mocks ou imagens
+│   └── example.json
+├── integration # 👈Aqui é onde nossos testes habitam
+│   └── examples # 👈Exemplos excelentes para serem estudados
+│       ├── actions.spec.js
+│       ├── aliasing.spec.js
+│       ├── assertions.spec.js
+│       ├── connectors.spec.js
+│       ├── cookies.spec.js
+│       ├── cypress_api.spec.js
+│       ├── files.spec.js
+│       ├── local_storage.spec.js
+│       ├── location.spec.js
+│       ├── misc.spec.js
+│       ├── navigation.spec.js
+│       ├── network_requests.spec.js
+│       ├── querying.spec.js
+│       ├── spies_stubs_clocks.spec.js
+│       ├── traversal.spec.js
+│       ├── utilities.spec.js
+│       ├── viewport.spec.js
+│       ├── waiting.spec.js
+│       └── window.spec.js
+├── plugins # 👈Pasta onde ficam plugins que podemos criar e/ou utilizar
+│   └── index.js
+└── support # 👈Onde se cria funções globais, reutilizáveis em todos os testes.
+    ├── commands.js
+    └── index.js
+
+5 directories, 23 files
+```
+
+O comando abrirá também a interface gráfica do Cypress, onde podemos ver os testes criados, e assistir eles serem rodados, inclusive com auto reload.
+
+<p align="middle" style="padding: 20px 0">
+<img width="80%" src="https://i.imgur.com/voDvx4s.png"></img><br>
+<small>Tela de Welcome do Cypress</small>
+</p>
+
+### Criando os testes de cadastro e login
+
+Crie, manualmente ou com o codigo abaixo, um novo arquivo javascript na pasta ```cypress/integrations``` e abra ele num editor de texto. Como é um teste de cadastro, poderemos chamar ele de ```login.spec.js```.
+
+<small>👨‍💻Para rodar no seu bash, na pasta raiz do projeto</small>
+
+```shell
+cd cypress/integration/
+touch login.spec.js
+```
+
+#### Fluxo
+<p align="center">
+<img width="80%" src="https://media.giphy.com/media/gdfoTj96xjmfky8NPP/giphy.gif">
+</p>
+
+#### Código
+
+**login.spec.js**
+
+```javascript
+// Página que vamos testar
+const url = 'http://thedemosite.co.uk/addauser.php'
+
+// Vamos gerar uma conta com crendenciais randomicas
+const username = String(Math.ceil(Math.random()*1000000));
+const password = String(Math.ceil(Math.random()*1000000));
+
+context('Cadastro de usuário', () => {
+  before(() => {
+    cy.visit(url)
+  });
+
+  it('Realizar cadastro de usuário', () => {
+
+    // Preenchimento dos campos
+    cy.get('input[name="username"').type(username);
+    cy.get('input[name="password"').type(password);
+
+    // Clique no botão de registro
+    cy.get('input[name="FormsButton2"').click();
+
+    /*  Para saber se a conta efetivamente foi criada
+        precisamos ver qual mensagem de sucesso o site retorna
+        no caso desse site, dois elementos sao preenchidos
+        com os dados da conta criada, vamos validar se os valores
+        desses elementos, correspondem as nossas variaveis de
+        nome e senha */
+    cy.get('blockquote').eq(3).should('contain', username);
+    cy.get('blockquote').eq(3).should('contain', password);  
+  });
+
+  it('Realizar login com usuário criado', () => {
+    cy.get('a[href="login.php"').first().click();
+
+    // Preenchimento dos campos
+    cy.get('input[name="username"').type(username);
+    cy.get('input[name="password"').type(password);
+
+    // Clique no botão de login
+    cy.get('input[name="FormsButton2"').click();
+
+    // Verificando se o login foi feito com sucesso
+    cy.get('blockquote').first().should('contain.text', '**Successful Login**');
+  });
+});
+```
+
+Agora inicie o Cypress no projeto com o ```npm run test:e2e``` e clique no seu teste ```login.spec.js```.
+<p align="center">
+<img width="80%" src="https://media.giphy.com/media/lqXlqoZ8fIJQIphhuI/giphy.gif">
+</p>
+
+## Conclusão
+
+Como diz o próprio site do Cypress, a web evoluiu, e finalmente os testes também. Espero que eu tenha passado como é facil realizar testes, prática ainda obscura para muitos devs.
+
+Pretendo fazer posts no meu blog mais profundos, desde upload de arquivos até problemas mais avançados de assincronia e problemas comuns.
+
+O artigo ficou longo, mas eu opto dessa forma para que qualquer um consiga consumir e aprender o artigo, e quem já sabe JS, pular para o que interessa.
+
+Obrigado 😁.

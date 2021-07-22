@@ -1,0 +1,14 @@
+it = descreve um caso de teste
+describe = agrupa testes
+describe.skip = pula o caso de teste e tudo que tem dentro dele
+only = executa somente aquele teste especifico
+expect(x) = valor esperado, equal(x) = valor que vai ser comparado com o valor esperado
+to.be.equal(x) 
+objetos em javaScript são entre chaves{} e virgulas separam a propriedade do valor da mensagem
+EX: const x = {
+    a: 1,
+    b: 2
+}
+have.text = tem que ter o texto completo no bloco de código se não o mesmo não é encontrado
+before = vai executar uma vez antes de tudo
+beforeEach = vai executar uma vez a cada teste realizado
